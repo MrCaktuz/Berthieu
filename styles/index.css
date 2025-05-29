@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* styles/fonts.css */
+@font-face {
+  font-family: 'Eyesome';
+  src: url('/fonts/eyesome-duo-script.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 @supports (font: -apple-system-body) and (-webkit-appearance: none) {
   img[loading="lazy"] {
     clip-path: inset(0.6px);
