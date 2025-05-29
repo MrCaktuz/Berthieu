@@ -4,8 +4,8 @@ export interface ImageProps {
   height: string;
   width: string;
   public_id: string;
-  format: string;
   blurDataUrl?: string;
+  name: string;
 }
 
 export interface SharedModalProps {

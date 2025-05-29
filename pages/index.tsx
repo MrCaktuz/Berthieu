@@ -1,5 +1,7 @@
 import type { NextPage } from "next";
 import Head from "next/head";
+import fs from 'fs';
+import path from 'path';
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -7,7 +9,6 @@ import { useEffect, useRef } from "react";
 import Bridge from "../components/Icons/Bridge";
 import Logo from "../components/Icons/Logo";
 import Modal from "../components/Modal";
-import cloudinary from "../utils/cloudinary";
 import getBase64ImageUrl from "../utils/generateBlurPlaceholder";
 import type { ImageProps } from "../utils/types";
 import { useLastViewedPhoto } from "../utils/useLastViewedPhoto";
@@ -74,7 +75,7 @@ const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
               Clone and Deploy
             </a>
           </div>
-          {images.map(({ id, public_id, format, blurDataUrl }) => (
+          {images.map(({ id, public_id, blurDataUrl }) => (
             <Link
               key={id}
               href={`/?photoId=${id}`}
@@ -89,7 +90,7 @@ const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
                 style={{ transform: "translate3d(0, 0, 0)" }}
                 placeholder="blur"
                 blurDataURL={blurDataUrl}
-                src={`https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/c_scale,w_720/${public_id}.${format}`}
+                src={public_id}
                 width={720}
                 height={480}
                 sizes="(max-width: 640px) 100vw,
@@ -138,37 +139,31 @@ const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
 export default Home;
 
 export async function getStaticProps() {
-  const results = await cloudinary.v2.search
-    .expression(`folder:${process.env.CLOUDINARY_FOLDER}/*`)
-    .sort_by("public_id", "desc")
-    .max_results(400)
-    .execute();
-  let reducedResults: ImageProps[] = [];
+  const imagesDirectory = path.join(process.cwd(), 'public/photos');
+  const filenames = fs.readdirSync(imagesDirectory);
+  const images: ImageProps[] = filenames.map((file) => {
+    const name = file.split('.')
+    return {
+      name: name[0],
+      id: Number(name[0].split('_')[1]),
+      height: '500',
+      width: '500',
+      public_id: path.join('/photos', file),
+    }
+  });
 
-  let i = 0;
-  for (let result of results.resources) {
-    reducedResults.push({
-      id: i,
-      height: result.height,
-      width: result.width,
-      public_id: result.public_id,
-      format: result.format,
-    });
-    i++;
-  }
-
-  const blurImagePromises = results.resources.map((image: ImageProps) => {
+  const blurImagePromises = images.map((image: ImageProps) => {
     return getBase64ImageUrl(image);
   });
   const imagesWithBlurDataUrls = await Promise.all(blurImagePromises);
 
-  for (let i = 0; i < reducedResults.length; i++) {
-    reducedResults[i].blurDataUrl = imagesWithBlurDataUrls[i];
+  for (let i = 0; i < images.length; i++) {
+    images[i].blurDataUrl = imagesWithBlurDataUrls[i];
   }
 
   return {
     props: {
-      images: reducedResults,
+      images,
     },
   };
 }
