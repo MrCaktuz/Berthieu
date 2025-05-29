@@ -1,5 +1,5 @@
 module.exports = {
-  images: {
-    remotePatterns: [],
-  },
+  /* config options here */
+  output: "standalone",
+  reactStrictMode: true,
 };
