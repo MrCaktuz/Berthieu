@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import sharp from "sharp";
+import type { ImageProps } from "./types";
 
 const cache = new Map();
 
